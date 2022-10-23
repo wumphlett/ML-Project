@@ -11,6 +11,14 @@ DATASET = DATA_DIR / "dataset.csv"
 
 def setup():
     boilerplate()
+    validate()
+
+
+def validate():
+    weight_keys = ["TRAIN_split", "TEST_split", "VALIDATION_split"]
+    weight_sum = sum(int(os.getenv(key)) for key in weight_keys)
+    if weight_sum != 100:
+        raise Exception(f"env values {' '.join(weight_keys)} must sum to 100 (currently {weight_sum})")
 
 
 def boilerplate():
