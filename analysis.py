@@ -1,6 +1,7 @@
 import numpy as np
 
 
+DIGITS = 5
 WIDTH = 10
 
 
@@ -43,7 +44,7 @@ def report(predicted_labels: np.ndarray, actual_labels: np.ndarray) -> str:
         report_str += f"{label.ljust(just)}"
         for metric in ("precision", "recall", "f1-score", "support"):
             report_str += (
-                f"{data[metric][label]:.5f}".rjust(WIDTH)
+                f"{data[metric][label]:.{DIGITS}f}".rjust(WIDTH)
                 if metric != "support"
                 else f"{data[metric][label]}".rjust(WIDTH)
             )
