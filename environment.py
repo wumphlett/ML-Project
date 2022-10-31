@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-import kaggle
 
 
 DATA_DIR = Path("./data").resolve()
@@ -29,6 +28,8 @@ def boilerplate():
 
 
 def download_data(dataset: str):
+    import kaggle  # Kaggle must be imported after envvars are loaded with load_dotenv
+
     kaggle.api.authenticate()
     kaggle.api.dataset_download_files(dataset, path=DATA_DIR, unzip=True)
 

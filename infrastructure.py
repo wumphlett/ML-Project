@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -9,11 +10,12 @@ from environment import DATASET
 RANDOM_STATE = 42
 
 
-def get_subsets():
+def get_dataframe() -> pd.DataFrame:
     df = pd.read_csv(DATASET)
+    return df.filter([os.getenv("DATASET_features"), os.getenv("DATASET_labels")], axis=1)
 
-    # TODO data cleaning
 
+def get_subsets(df: pd.DataFrame) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray):
     X = df.iloc[:, :-1].to_numpy()
     y = df.iloc[:, -1:].to_numpy()
 
