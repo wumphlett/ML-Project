@@ -1,0 +1,10 @@
+name: ml-project
+
+channels:
+  - defaults
+
+dependencies:
+  - pip
+  - pip:
+    - kaggle
+    - python-dotenv
