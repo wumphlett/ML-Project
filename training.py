@@ -11,7 +11,7 @@ from environment import DATA_DIR
 
 
 def matrix_train(
-    hyperparameters: Dict[str, Union[Iterable[Any], Any]],
+    hyperparameters: Dict[str, Iterable[Any]],
     mlp,
     X_train: np.ndarray,
     y_train: np.ndarray,
@@ -29,19 +29,11 @@ def matrix_train(
         if parameter not in hyperparameters and parameter != "self":
             raise Exception(f"parameter {parameter} not found in the training matrix")
 
-    constants, axises = [], []
-    for parameter, specified in hyperparameters.items():
-        if isinstance(specified, Iterable):
-            axises.append((parameter, specified))
-        else:
-            constants.append((parameter, specified))
+    axises = [(parameter, specified) for parameter, specified in hyperparameters.items()]
 
     matrix = []
     for parameters in product(*[axis[1] for axis in axises]):
         matrix.append({name: parameter for name, parameter in zip([axis[0] for axis in axises], parameters)})
-
-    for item in matrix:
-        item.update({name: parameter for name, parameter in constants})
 
     combinations = len(matrix)
     digits = len(str(len(matrix)))
