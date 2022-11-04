@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterable, Union
 import numpy as np
 from sklearn.metrics import accuracy_score
 
-from environment import DATA_DIR
+from bootstrap import DATA_DIR
 
 
 def matrix_train(

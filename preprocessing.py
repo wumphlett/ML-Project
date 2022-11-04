@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from environment import DATASET
+from bootstrap import DATASET
 
 
 RANDOM_STATE = 42
