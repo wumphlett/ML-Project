@@ -80,4 +80,3 @@ dependencies:
     - threadpoolctl==3.1.0
     - tqdm==4.64.1
     - urllib3==1.26.12
-prefix: C:\Users\matth\anaconda3\envs\ml-project
