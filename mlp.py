@@ -145,11 +145,16 @@ class MultiLayerPerceptron:
         loss = 0.0
         for X, y in zip(X_batch, y_batch):
             curr = X[:, np.newaxis]
+            
+            if self.output_layer != 1:
+                y = y[:, np.newaxis]
+
             for W, b in zip(self._weights, self._biases):
                 z = W.T @ curr + b
                 # print(z)
                 curr = sigmoid(z)
-            loss += (curr[0][0] - y) ** 2
+            # print((curr - y).shape)
+            loss += np.sum((curr - y) ** 2)
         return loss
     
     def plot_loss(self) -> None:

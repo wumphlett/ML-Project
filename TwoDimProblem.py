@@ -50,19 +50,7 @@ class TwoDimProblem:
         FP = np.logical_and(y_pred == 1, self.labels == 0)
         TN = np.logical_and(y_pred == 0, self.labels == 0)
         FN = np.logical_and(y_pred == 0, self.labels == 1)
-
-        # scatter_colors = []
-        # for p, a in zip(y_pred, self.labels):
-        #     if not p == a and a == 0:
-        #         scatter_colors.append('#990000')
-        #     elif  not p == a and a == 1:
-        #         scatter_colors.append('r')
-        #     elif p == a == 1:
-        #         scatter_colors.append('lightgreen')
-        #     else:
-        #         scatter_colors.append('g')
                 
-        # plt.scatter(self.data[:,0], self.data[:,1], c=scatter_colors)
         plt.scatter(self.data[TP,0], self.data[TP,1], c='g', label='TP')
         plt.scatter(self.data[FP,0], self.data[FP,1], c='r', label='FP')
         plt.scatter(self.data[TN,0], self.data[TN,1], c='lightgreen', label='TN')
@@ -74,8 +62,7 @@ class TwoDimProblem:
             y = seperator(x)
             plt.plot(x, y, c='black')
         if show_correct:
-            x = np.linspace(-RANGE, RANGE, 1000)
-            x = np.array([i for i in x if -RANGE*1.5 <= self.seperator(i) <= RANGE*1.5])
+            x = np.array([i for i in np.linspace(-RANGE, RANGE, 1000) if -RANGE*1.5 <= self.seperator(i) <= RANGE*1.5])
             y = self.seperator(x)
             plt.plot(x, y, c='green', linestyle='dashed')
         plt.legend()
