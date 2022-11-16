@@ -3,9 +3,13 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import Sequence
 from sklearn.preprocessing import OneHotEncoder
+from numba import jit, njit, guvectorize, float64
 
+# @guvectorize([(float64[:], float64[:])], "(n)->(n)")
+@njit
 def sigmoid(X: np.ndarray):
     return 1.0 / (1.0 + np.exp(-X))
+@njit
 def dSigmoid(X: np.ndarray):
     a = 1.0 / (1.0 + np.exp(-X))
     return a*(1-a)
@@ -105,38 +109,48 @@ class MultiLayerPerceptron:
         return (dJdB, dJdW)
     
     def _backprop(self, X: np.ndarray, y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
-        dJdB = [np.zeros(b.shape) for b in self._biases]
-        dJdW = [np.zeros(w.shape) for w in self._weights]
+        return MultiLayerPerceptron._backprop_compiled(X, y, self._weights, self._biases, self.activation, self.dActivation, self._structure)
+
+    @staticmethod
+    @jit(nopython=True, )
+    def _backprop_compiled( 
+        X: np.ndarray, 
+        y: np.ndarray,
+        weights: list[np.ndarray],
+        biases: list[np.ndarray],
+        activation: np.ufunc,
+        dActivation: np.ufunc,
+        structure: tuple) -> tuple[list[np.ndarray], list[np.ndarray]]:
+        print("started!")
+        dJdB = [np.zeros(b.shape) for b in biases]
+        dJdW = [np.zeros(w.shape) for w in weights]
         if X.ndim == 1:
             X = X[:, np.newaxis]
         layer_raw = []
         layer_activations = []
         a = X
-        for b, W in zip(self._biases, self._weights):
+        for b, W in zip(biases, weights):
             z = W.T @ a + b 
-            a = self.activation(z)
+            a = activation(z)
             layer_raw.append(z)
             layer_activations.append(a)
         
         # For last layer, compare to y
-        H = self._num_layers - 2
-        # print(layer_activations[H].shape, y[:, np.newaxis].shape)
-        if self.output_layer != 1:
+        H = len(structure) - 2
+        if structure[-1] != 1:
             y = y[:, np.newaxis]
-        # print(layer_activations[H].shape, y.shape)
-        delta = (layer_activations[H] - y) * self.dActivation(layer_raw[H])
-        # print(delta.shape)
+        delta = (layer_activations[H] - y) * dActivation(layer_raw[H])
         dJdB[H] = delta
         dJdW[H] = layer_activations[H-1] @ delta.T
 
         # For all hidden layers, compare to layer after it
         for L in range(H-1, 0, -1):
-            delta = self._weights[L+1] @ delta * self.dActivation(layer_raw[L])
+            delta = weights[L+1] @ delta * dActivation(layer_raw[L])
             dJdB[L] = delta
             dJdW[L] = layer_activations[L-1] @ delta.T
 
         # For input layer, update W according to input, not previous layer
-        delta = (self._weights[1] @ delta) * self.dActivation(layer_raw[0])
+        delta = (weights[1] @ delta) * dActivation(layer_raw[0])
         dJdB[0] = delta
         dJdW[0] = X @ delta.T
         return (dJdB, dJdW)
@@ -145,7 +159,7 @@ class MultiLayerPerceptron:
         loss = 0.0
         for X, y in zip(X_batch, y_batch):
             curr = X[:, np.newaxis]
-            
+
             if self.output_layer != 1:
                 y = y[:, np.newaxis]
 
