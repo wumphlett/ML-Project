@@ -4,6 +4,7 @@ from tqdm import tqdm
 from typing import Sequence
 from sklearn.preprocessing import OneHotEncoder
 from numba import jit, njit, guvectorize, float64
+from numba.typed import List
 
 # @guvectorize([(float64[:], float64[:])], "(n)->(n)")
 @njit
@@ -109,10 +110,18 @@ class MultiLayerPerceptron:
         return (dJdB, dJdW)
     
     def _backprop(self, X: np.ndarray, y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
-        return MultiLayerPerceptron._backprop_compiled(X, y, self._weights, self._biases, self.activation, self.dActivation, self._structure)
+        if X.ndim == 1:
+            X = X[:, np.newaxis]
+        if self._structure[-1] != 1:
+            y = y[:, np.newaxis]
+
+        weights = List(self._weights)
+        biases = List(self._biases)
+        
+        return MultiLayerPerceptron._backprop_compiled(X, y, weights, biases, self.activation, self.dActivation, self._structure)
 
     @staticmethod
-    @jit(nopython=True, )
+    @njit
     def _backprop_compiled( 
         X: np.ndarray, 
         y: np.ndarray,
@@ -121,24 +130,29 @@ class MultiLayerPerceptron:
         activation: np.ufunc,
         dActivation: np.ufunc,
         structure: tuple) -> tuple[list[np.ndarray], list[np.ndarray]]:
-        print("started!")
+
+        # print(f"X: {X.shape}")
+        # print(f"y: {y.shape}")
+        # print(f"weights: {[w.shape for w in weights]}")
+        # print(f"biases: {[b.shape for b in biases]}")
+        
+
         dJdB = [np.zeros(b.shape) for b in biases]
         dJdW = [np.zeros(w.shape) for w in weights]
-        if X.ndim == 1:
-            X = X[:, np.newaxis]
-        layer_raw = []
-        layer_activations = []
+        
+        layer_raw = [np.zeros(b.shape) for b in biases]
+        layer_activations = [np.zeros(b.shape) for b in biases]
         a = X
-        for b, W in zip(biases, weights):
+        for i, (b, W) in enumerate(zip(biases, weights)):
             z = W.T @ a + b 
             a = activation(z)
-            layer_raw.append(z)
-            layer_activations.append(a)
-        
+            # print(f"z{i}: {z.shape}")
+            # print(f"a{i}: {a.shape}")
+            layer_raw[i] = z
+            layer_activations[i] = a
         # For last layer, compare to y
         H = len(structure) - 2
-        if structure[-1] != 1:
-            y = y[:, np.newaxis]
+        
         delta = (layer_activations[H] - y) * dActivation(layer_raw[H])
         dJdB[H] = delta
         dJdW[H] = layer_activations[H-1] @ delta.T
