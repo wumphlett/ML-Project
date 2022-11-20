@@ -59,7 +59,7 @@ class MultiLayerPerceptron:
         for i in range(self.num_epochs):
             yield i, self.lr
     
-    def fit(self, X: np.ndarray, y: np.ndarray, batch_size: int = 1) -> None:
+    def fit(self, X: np.ndarray, y: np.ndarray, batch_size: int = 1, compiled=True) -> None:
         self._biases = [np.random.randn(y, 1) for y in self._structure[1:]]
         self._weights = [np.random.randn(x,y) for x, y in zip(self._structure[:-1], self._structure[1:])]
 
@@ -75,7 +75,7 @@ class MultiLayerPerceptron:
                 y_batch = y[i:i+batch_size]
                 # print(f"X_batch: {X_batch.shape}")
                 # print(f"y_batch: {y_batch.shape}")
-                dJdB, dJdW = self._batch_backprop(X_batch, y_batch)
+                dJdB, dJdW = self._batch_backprop(X_batch, y_batch, compiled=compiled)
                 loss += self._calc_loss(X_batch, y_batch)
                 self._biases = [b - lr * db for b, db in zip(self._biases, dJdB)]
                 self._weights = [w - lr * dw for w, dw in zip(self._weights, dJdW)]
@@ -100,14 +100,18 @@ class MultiLayerPerceptron:
         
 
     def _batch_backprop(self, 
-        X_batch: np.ndarray | list[np.ndarray], 
-        y_batch: np.ndarray | list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]:
+        X_batch: np.ndarray,
+        y_batch: np.ndarray, 
+        compiled = True) -> tuple[list[np.ndarray], list[np.ndarray]]:
 
-        weights = List(self._weights)
-        biases = List(self._biases)
         X_batch = X_batch[:,:,np.newaxis]
         y_batch = y_batch[:,:,np.newaxis]
-        return batch_backprop_compiled(X_batch, y_batch, weights, biases, self.activation, self.dActivation, self._structure)
+        if compiled:
+            weights = List(self._weights)
+            biases = List(self._biases)
+            return batch_backprop_compiled(X_batch, y_batch, weights, biases, self.activation, self.dActivation, self._structure)
+        else:
+            return batch_backprop(X_batch, y_batch, self._weights, self._biases, self.activation, self.dActivation, self._structure)
         
     def _calc_loss(self, X_batch: np.ndarray, y_batch: np.ndarray) -> float:
         loss = 0.0
