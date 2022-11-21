@@ -12,6 +12,7 @@ RANDOM_STATE = 42
 
 def get_dataframe() -> pd.DataFrame:
     df = pd.read_csv(DATASET)
+    df = df[:1000]
     return df.filter([os.getenv("DATASET_features"), os.getenv("DATASET_labels")], axis=1)
 
 
