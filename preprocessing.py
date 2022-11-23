@@ -10,9 +10,10 @@ from bootstrap import DATASET
 RANDOM_STATE = 42
 
 
-def get_dataframe() -> pd.DataFrame:
+def get_dataframe(points: int = None) -> pd.DataFrame:
     df = pd.read_csv(DATASET)
-    df = df[:1000]
+    if points and points < len(df):
+        df = df.sample(points)
     return df.filter([os.getenv("DATASET_features"), os.getenv("DATASET_labels")], axis=1)
 
 
@@ -30,3 +31,8 @@ def get_subsets(df: pd.DataFrame) -> (np.ndarray, np.ndarray, np.ndarray, np.nda
         X_test, y_test, test_size=validation_test_size, random_state=RANDOM_STATE
     )
     return X_train, X_test, X_validate, y_train.reshape(-1), y_test.reshape(-1), y_validate.reshape(-1)
+
+def get_subsets_no_val(X, y):
+    base_test_size = int(os.getenv("TEST_split")) / 100
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=base_test_size, random_state=RANDOM_STATE)
+    return X_train, X_test, y_train.reshape(-1), y_test.reshape(-1)
