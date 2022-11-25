@@ -21,18 +21,21 @@ def relu(X: np.ndarray):
 def dRelu(X: np.ndarray):
     return np.where(X > 0, 1, 0)
 
+def squared_loss(y_true: np.ndarray, y_pred: np.ndarray):
+    return 0.5 * np.sum((y_true - y_pred)**2)
+
 class MultiLayerPerceptron:
     def __init__(
         self,
         epochs: int,
         lr: float,
-        # input_layer: int,
-        # output_layer: int,
         hidden_layers: Sequence[int],
+        reg_const: float = 0.0,
         activation: str = "sigmoid",
     ):
         self.num_epochs = epochs
         self.lr = lr
+        self.reg_const = reg_const
         self.input_layer = None
         self.output_layer = None
         self.hidden_layers = hidden_layers
@@ -52,6 +55,8 @@ class MultiLayerPerceptron:
                 self.dActivation = dRelu
             case _:
                 raise ValueError("Invalid activation function")
+
+        self._loss_function = squared_loss
 
         self._biases = None
         self._weights = None 
@@ -89,8 +94,8 @@ class MultiLayerPerceptron:
             for i in range(0, X.shape[0], batch_size):
                 X_batch = X[i:i+batch_size]
                 y_batch = y[i:i+batch_size]
-                dJdB, dJdW = self._backprop(X_batch, y_batch)
-                loss += self._calc_loss(X_batch, y_batch)
+                dJdB, dJdW, c_loss= self._backprop(X_batch, y_batch)
+                loss += c_loss
                 self._biases = [b - lr * db for b, db in zip(self._biases, dJdB)]
                 self._weights = [w - lr * dw for w, dw in zip(self._weights, dJdW)]
             self.loss_curve.append(loss)
@@ -104,6 +109,7 @@ class MultiLayerPerceptron:
         curr = X
         for i in range(self._num_layers - 1):
             curr = curr @ self._weights[i]
+            # curr = self._safe_sparse_dot(curr,self._weights[i])
             curr += self._biases[i].T
             curr = self.activation(curr)
         if self.output_layer == 1:
@@ -134,47 +140,54 @@ class MultiLayerPerceptron:
         a = X
         for b, W in zip(self._biases, self._weights):
             z = a @ W + b.T
+            # z = self._safe_sparse_dot(a,W) + b.T
             a = self.activation(z)
             layer_raw.append(z)
             layer_activations.append(a)
         
+        loss = self._calc_loss(y, a)
+
         # For last layer, compare to y
         last_hidden = self._num_layers - 2
 
         delta = (layer_activations[last_hidden] - y) * self.dActivation(layer_raw[last_hidden])
         dBias[last_hidden] = np.mean(delta, axis=0)
         dWeights[last_hidden] = layer_activations[last_hidden-1].T @ delta
+        # dWeights[last_hidden] = self._safe_sparse_dot(layer_activations[last_hidden-1].T, delta)
         dWeights[last_hidden] /= n_samples
 
         # For all hidden layers, compare to layer after it
         for L in range(last_hidden-1, 0, -1):
-            delta = delta @ self._weights[L+1].T * self.dActivation(layer_raw[L])
+            delta = (delta @ self._weights[L+1].T) * self.dActivation(layer_raw[L])
+            # delta = self._safe_sparse_dot(delta, self._weights[L+1].T) * self.dActivation(layer_raw[L])
             dBias[L] = np.mean(delta, axis=0)
             dWeights[L] = layer_activations[L-1].T @ delta
 
         # For input layer, update W according to input, not previous layer
         delta = (delta @ self._weights[1].T) * self.dActivation(layer_raw[0])
+        # delta = self._safe_sparse_dot(delta, self._weights[1].T) * self.dActivation(layer_raw[0])
         dBias[0] = np.mean(delta, axis=0)
         dWeights[0] = X.T @ delta
-        
         # add a second dimension to the bias gradient to make it compatible with the bias shape
         dBias = [db[:,np.newaxis] for db in dBias]
-        return (dBias, dWeights)
+        return (dBias, dWeights, loss)
     
-    def _calc_loss(self, X_batch: np.ndarray, y_batch: np.ndarray) -> float:
-        loss = 0.0
-        for X, y in zip(X_batch, y_batch):
-            curr = X[:, np.newaxis]
-            
-            if self.output_layer != 1:
-                y = y[:, np.newaxis]
-
-            for W, b in zip(self._weights, self._biases):
-                z = W.T @ curr + b
-                # print(z)
-                curr = sigmoid(z)
-            # print((curr - y).shape)
-            loss += np.sum((curr - y) ** 2)
+    def _calc_loss(self, y_pred: np.ndarray, y_batch: np.ndarray, reg:str=None) -> float:
+        loss = self._loss_function(y_pred, y_batch)
+        if reg:
+            match reg:
+                case "l1":
+                    c = 0
+                    for w in self._weights:
+                        c += np.sum(np.abs(w))
+                    loss += self.reg_const * c
+                case "l2":
+                    c = 0
+                    for w in self._weights:
+                        c += np.sum(w**2)
+                    loss += self.reg_const * c
+                case _:
+                    raise ValueError("Invalid regularization method")
         return loss
 
     def _safe_sparse_dot(self, a, b, dense_output=False):
