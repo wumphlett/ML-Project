@@ -89,7 +89,7 @@ class MultiLayerPerceptron:
             for i in range(0, X.shape[0], batch_size):
                 X_batch = X[i:i+batch_size]
                 y_batch = y[i:i+batch_size]
-                dJdB, dJdW = self._batch_backprop(X_batch, y_batch)
+                dJdB, dJdW = self._backprop(X_batch, y_batch)
                 loss += self._calc_loss(X_batch, y_batch)
                 self._biases = [b - lr * db for b, db in zip(self._biases, dJdB)]
                 self._weights = [w - lr * dw for w, dw in zip(self._weights, dJdW)]
@@ -107,7 +107,7 @@ class MultiLayerPerceptron:
             curr += self._biases[i].T
             curr = self.activation(curr)
         if self.output_layer == 1:
-            curr = np.where(curr > 0.5, 1, 0)
+            curr = np.where(curr > 0.5, 1, 0).ravel()
         else:
             curr = np.argmax(self.activation(curr), axis=1).ravel()
         return curr
@@ -123,66 +123,42 @@ class MultiLayerPerceptron:
         else:
             return self._yencoder.fit_transform(y)
 
-    def _batch_backprop(self, 
-        X_batch: np.ndarray | list[np.ndarray], 
-        y_batch: np.ndarray | list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]:
-
-        X_batch = X_batch[:,:, np.newaxis]
-        y_batch = y_batch[:,:, np.newaxis]
-
-        # print(f"X_batch: {X_batch.shape}")
-        # print(f"y_batch: {y_batch.shape}")
-
-        # return self._backprop(X_batch, y_batch)
-
-        dJdB = [np.zeros(b.shape) for b in self._biases]
-        dJdW = [np.zeros(w.shape) for w in self._weights]
-        batch_size = len(X_batch)
-        for X, y in zip(X_batch, y_batch):
-            dB, dW = self._backprop(X, y)
-            dJdB = [db + ddb for db, ddb in zip(dJdB, dB)]
-            dJdW = [dw + ddw for dw, ddw in zip(dJdW, dW)]
-        dJdB = [db / batch_size for db in dJdB]
-        dJdW = [dw / batch_size for dw in dJdW]
-        return (dJdB, dJdW)
-    
     def _backprop(self, X: np.ndarray, y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
         dBias = [np.zeros(b.shape) for b in self._biases]
         dWeights = [np.zeros(w.shape) for w in self._weights]
+        n_samples = X.shape[0]
 
         # do forward pass, store all activations and net values
         layer_raw = []
         layer_activations = []
         a = X
         for b, W in zip(self._biases, self._weights):
-            z = W.T @ a + b 
+            z = a @ W + b.T
             a = self.activation(z)
             layer_raw.append(z)
             layer_activations.append(a)
         
         # For last layer, compare to y
         last_hidden = self._num_layers - 2
+
         delta = (layer_activations[last_hidden] - y) * self.dActivation(layer_raw[last_hidden])
-        # print(f"delta: {delta.shape}")
-        # print(f"activation: {layer_activations[last_hidden].shape}")
-        dBias[last_hidden] = delta
-        dWeights[last_hidden] = layer_activations[last_hidden-1] @ delta.T
-        # dWeights[last_hidden] = np.dot(layer_activations[last_hidden], delta.T)
-        # print("dWeights[last_hidden]: ", dWeights[last_hidden].shape)
+        dBias[last_hidden] = np.mean(delta, axis=0)
+        dWeights[last_hidden] = layer_activations[last_hidden-1].T @ delta
+        dWeights[last_hidden] /= n_samples
 
         # For all hidden layers, compare to layer after it
         for L in range(last_hidden-1, 0, -1):
-            delta = self._weights[L+1] @ delta * self.dActivation(layer_raw[L])
-            # print(f"delta: {delta.T.shape}")
-            # print(f"activation: {layer_activations[L].shape}")
-            dBias[L] = delta
-            dWeights[L] = layer_activations[L-1] @ delta.T
-            # dWeights[L] = np.dot(layer_activations[L].T,delta)
+            delta = delta @ self._weights[L+1].T * self.dActivation(layer_raw[L])
+            dBias[L] = np.mean(delta, axis=0)
+            dWeights[L] = layer_activations[L-1].T @ delta
 
         # For input layer, update W according to input, not previous layer
-        delta = (self._weights[1] @ delta) * self.dActivation(layer_raw[0])
-        dBias[0] = delta
-        dWeights[0] = X @ delta.T
+        delta = (delta @ self._weights[1].T) * self.dActivation(layer_raw[0])
+        dBias[0] = np.mean(delta, axis=0)
+        dWeights[0] = X.T @ delta
+        
+        # add a second dimension to the bias gradient to make it compatible with the bias shape
+        dBias = [db[:,np.newaxis] for db in dBias]
         return (dBias, dWeights)
     
     def _calc_loss(self, X_batch: np.ndarray, y_batch: np.ndarray) -> float:
@@ -239,3 +215,22 @@ class MultiLayerPerceptron:
         plt.ylabel("Loss")
         plt.title("Loss vs Epoch")
         plt.show()
+
+if __name__ == "__main__":
+    from TwoDimProblem import TwoDimProblem
+    p = TwoDimProblem(value_range=5)
+    X, y = p.createData(soln_rank=2, noise_frac=0.0, samples=10)
+    y[:2] = 2 
+    
+    mlp = MultiLayerPerceptron(
+        epochs=1, 
+        lr=0.1,
+        activation='sigmoid',
+        # input_layer=2, 
+        hidden_layers=[3,2],
+        # output_layer=2
+        )
+        
+    mlp.fit(X,y, batch_size=5)
+    # p.plotPred(pred, show_correct=True)
+    # mlp.plot_loss()
