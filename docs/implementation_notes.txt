@@ -1,0 +1,9 @@
+Issues we encountered:
+Shape of arrays being confusing
+Keeping type safety for working between multiple people
+Keeping things vectorized
+Trying to use numba
+Handling encoded data in memory size (scipy.sparse)
+
+Questions
+Should a binary decision have 2 output, or 1?
