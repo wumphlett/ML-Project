@@ -11,13 +11,17 @@ RANDOM_STATE = 42
 
 
 def get_dataframe(points: int = None) -> pd.DataFrame:
-    df = pd.read_csv(DATASET)
+    if os.getenv("KAGGLE_dataset") == "kazanova/sentiment140":
+        rows = ["target", "ids", "date", "flag", "user", "text"]
+        df = pd.read_csv(DATASET, encoding="ISO-8859-1", names=rows)
+    else:
+        df = pd.read_csv(DATASET)
     if points and points < len(df):
         df = df.sample(points)
     return df.filter([os.getenv("DATASET_features"), os.getenv("DATASET_labels")], axis=1)
 
 
-def get_subsets(df: pd.DataFrame) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+def get_subsets(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     X = df.iloc[:, :-1].to_numpy()
     y = df.iloc[:, -1:].to_numpy()
 
