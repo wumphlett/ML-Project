@@ -116,29 +116,39 @@ class MultiLayerPerceptron:
         for i in range(self.num_epochs):
             yield i, self.lr
     
-    def fit(self, X: np.ndarray, y: np.ndarray, batch_size: int = 1, use_val = 0.0) -> None:
+    def fit(self, X: np.ndarray, y: np.ndarray, X_val:np.ndarray = None, y_val:np.ndarray = None, batch_size: int = 1, continue_fit = False) -> None:
         ''' Fits the model to the given data
         X: Input data of shape (n_examples, n_features)
         y: Output data of shape (n_examples, )
+        X_val: Validation input data of shape (n_examples, n_features)
+        y_val: Validation output data of shape (n_examples, )
         batch_size: Size of the batch to be used for training
-        use_val: Percentage of data to be used for validation (only on plotting for now)
+        continue_fit: If True, the model will continue training from the last epoch
         '''
-
         if len(X.shape) != 2:
             raise ValueError("Invalid shape for X")
+        if len(y.shape) != 1:
+            raise ValueError("Invalid shape for y")
         n_examples, n_features = X.shape
-        self.input_layer = n_features
 
-        y = self._format_labels(y)
-        self.output_layer = y.shape[1]
+        use_val = False
+        if X_val is not None and y_val is not None:
+            use_val = True
+            if len(X_val.shape) != 2:
+                raise ValueError("Invalid shape for X_val")
+            if len(y_val.shape) != 1:
+                raise ValueError("Invalid shape for y_val")
+        y_combined = np.concatenate((y, y_val)) if use_val else y
+        y_combined = self._format_labels(y_combined)
+        y, y_val = np.split(y_combined, [n_examples]) if use_val else (y_combined, None)
         
-        self._structure = (self.input_layer, *self.hidden_layers, self.output_layer)
+        if not continue_fit:
+            self.input_layer = n_features
+            self.output_layer = y.shape[1]
+            self._structure = (self.input_layer, *self.hidden_layers, self.output_layer)
 
-        self._biases = [np.random.randn(y, 1) for y in self._structure[1:]]
-        self._weights = [np.random.randn(x,y) for x, y in zip(self._structure[:-1], self._structure[1:])]
-
-        if use_val:
-            X, X_val, y, y_val = train_test_split(X, y, test_size=use_val, random_state=42)
+            self._biases = [np.random.randn(y, 1) for y in self._structure[1:]]
+            self._weights = [np.random.randn(x,y) for x, y in zip(self._structure[:-1], self._structure[1:])]
 
         for epoch_num, lr in tqdm(self.epochs(), total=self.num_epochs):
             train_loss = 0
@@ -155,6 +165,7 @@ class MultiLayerPerceptron:
             if use_val:
                 val_loss = self._calc_loss(y_val, self._fast_forward_pass(X_val))
                 self.val_loss_curve.append(val_loss)
+
 
     def predict(self, X:np.ndarray) -> np.ndarray:
         '''
