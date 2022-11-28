@@ -8,10 +8,11 @@ DATA_DIR = Path("./data").resolve()
 DATASET = DATA_DIR / "dataset.csv"
 
 
-def setup():
+def setup(download=True):
     boilerplate()
+    if download:
+        download_data(os.getenv("KAGGLE_dataset"))
     validate()
-
 
 def validate():
     weight_keys = ["TRAIN_split", "TEST_split", "VALIDATION_split"]
@@ -22,10 +23,7 @@ def validate():
 
 def boilerplate():
     load_dotenv(override=True)
-
     DATA_DIR.mkdir(exist_ok=True)
-    download_data(os.getenv("KAGGLE_dataset"))
-
 
 def download_data(dataset: str):
     import kaggle  # Kaggle must be imported after envvars are loaded with load_dotenv
