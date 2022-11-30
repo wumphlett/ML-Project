@@ -9,7 +9,7 @@ from bootstrap import DATASET, DATA_DIR
 
 RANDOM_STATE = 42
 
-def get_dataframe_file(params:dict, points:int = None) -> pd.DataFrame:
+def get_dataframe_file(params:dict, points:int = None, equalize: bool = False) -> pd.DataFrame:
     '''Get a pandas dataframe from a file
     params: dict containing 'file', 'encoding', 'rows', 'features', 'labels'
     points: number of points to return
@@ -23,8 +23,32 @@ def get_dataframe_file(params:dict, points:int = None) -> pd.DataFrame:
 
     if points:
         df = df.sample(n=points, random_state=RANDOM_STATE)
+    if equalize:
+        df = equalize_num_examples_per_label(df, params)
 
     return df.filter([params['features'], params['labels']], axis=1)
+
+# Equalize the number of samples per label
+# Determine the number of unique labels, determine the number of entries per unique label, determine the label with
+# the fewest entries. Drop entries from the other labels to equalize the number of entries per label
+#
+def equalize_num_examples_per_label(df: pd.DataFrame, params: dict) -> pd.DataFrame:
+    # Determine the labels
+    labels = df[params['labels']]
+    # Determine the unique labels
+    unique_labels = set(labels)
+    # Determine the number of entries per label
+    num_entries_per_label = dict()
+    for label in unique_labels:
+        num_entries_per_label.update({label: len(df.index[labels == label])})
+    # Determine the label with the fewest entries
+    min_num_entries = min(num_entries_per_label.values())
+    # Drop entries from each label to equalize the number of entries per label
+    for label in unique_labels:
+        labels = df[params['labels']]
+        indices = df.index[labels == label]
+        df.drop(indices[:num_entries_per_label[label] - min_num_entries], inplace=True)
+    return df
 
 def validate_params(params: dict):
     if 'file' not in params:
