@@ -136,3 +136,11 @@ dmypy.json
 /data/dataset.csv
 /data/train.log
 /data/train.csv
+/data/reviews_CDs_and_Vinyl_5.json
+/data/reviews_Cell_Phones_and_Accessories_5.json
+/data/reviews_Clothing_Shoes_and_Jewelry_5.json
+/data/reviews_Electronics_5.json
+/data/reviews_Home_and_Kitchen_5.json
+/data/reviews_Kindle_Store_5.json
+/data/reviews_Movies_and_TV_5.json
+/data/reviews_Sports_and_Outdoors_5.json
