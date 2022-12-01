@@ -6,6 +6,10 @@ from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from scipy import sparse
+import warnings
+
+# I hate overflow errors :)
+warnings.filterwarnings('ignore', category=RuntimeWarning)
 
 def sigmoid(X: np.ndarray) -> np.ndarray:
     '''Sigmoid function'''

@@ -6,6 +6,54 @@ from sklearn.model_selection import train_test_split
 
 from bootstrap import DATASET, DATA_DIR
 
+CDS_AND_VINYL_JSON_PARAMS = {
+    'file': 'CDs_and_Vinyl_5.json.gz',
+    'filetype': 'json',
+    'features': "reviewText",
+    'labels': "overall",
+}
+CELL_PHONE_JSON_PARAMS = {
+    'file': 'Cell_Phones_and_Accessories_5.json.gz',
+    'filetype': 'json',
+    'features': "reviewText",
+    'labels': "overall",
+}
+CLOTHING_JSON_PARAMS = {
+    'file': 'Clothing_Shoes_and_Jewelry_5.json',
+    'filetype': 'json',
+    'features': "reviewText",
+    'labels': "overall",
+}
+ELECTRONICS_JSON_PARAMS = {
+    'file': 'Electronics_5.json.gz',
+    'filetype': 'json',
+    'features': "reviewText",
+    'labels': "overall",
+}
+HOME_AND_KITCHEN_JSON_PARAMS = {
+    'file': 'Home_and_Kitchen_5.json.gz',
+    'filetype': 'json',
+    'features': "reviewText",
+    'labels': "overall",
+}
+KINDLE_STORE_JSON_PARAMS = {
+    'file': 'Kindle_Store_5.json.gz',
+    'filetype': 'json',
+    'features': "reviewText",
+    'labels': "overall",
+}
+MOVIES_JSON_PARAMS = {
+    'file': 'Movies_and_TV_5.json.gz',
+    'filetype': 'json',
+    'features': "reviewText",
+    'labels': "overall",
+}
+SPORTS_JSON_PARAMS = {
+    'file': 'Sports_and_Outdoors_5.json.gz',
+    'filetype': 'json',
+    'features': "reviewText",
+    'labels': "overall",
+}
 
 RANDOM_STATE = 42
 
@@ -65,17 +113,6 @@ def validate_params(params: dict):
         raise Exception("params must contain 'features' key")
     if 'labels' not in params:
         raise Exception("params must contain 'labels' key")
-    
-# def get_dataframe(points: int = None) -> pd.DataFrame:
-#     if os.getenv("KAGGLE_dataset") == "kazanova/sentiment140":
-#         rows = ["target", "ids", "date", "flag", "user", "text"]
-#         df = pd.read_csv(DATASET, encoding="ISO-8859-1", names=rows)
-#     else:
-#         df = pd.read_csv(DATASET)
-#     if points and points < len(df):
-#         df = df.sample(points)
-#     return df.filter([os.getenv("DATASET_features"), os.getenv("DATASET_labels")], axis=1)
-
 
 def get_subsets(
     X:np.ndarray, 
