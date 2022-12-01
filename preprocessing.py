@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from bootstrap import DATASET, DATA_DIR
+from bootstrap import DATA_DIR
 
 CDS_AND_VINYL_JSON_PARAMS = {
     'file': 'CDs_and_Vinyl_5.json.gz',

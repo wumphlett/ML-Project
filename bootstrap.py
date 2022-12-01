@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 
 DATA_DIR = Path("./data").resolve()
@@ -22,7 +22,7 @@ def validate_env():
 
 
 def boilerplate():
-    load_dotenv(override=True)
+    # load_dotenv(override=True)
     DATA_DIR.mkdir(exist_ok=True)
 
 def download_data_file(url: str, filename: str, overwrite: bool = False):

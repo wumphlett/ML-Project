@@ -9,7 +9,7 @@ from scipy import sparse
 import warnings
 
 # I hate overflow errors :)
-warnings.filterwarnings('ignore', category=RuntimeWarning)
+warnings.filterwarnings('ignore', category=RuntimeWarning, message='overflow encountered in exp')
 
 def sigmoid(X: np.ndarray) -> np.ndarray:
     '''Sigmoid function'''
@@ -55,7 +55,8 @@ def L1_reg_grad(weights: list[np.ndarray]) -> list[np.ndarray]:
 def L2_reg_loss(weights: list[np.ndarray]) -> float:
     c = 0
     for w in weights:
-        c += np.sum(w**2)
+        w = w.ravel()
+        c += np.dot(w, w)
     return c
 
 def L2_reg_grad(weights: list[np.ndarray]) -> list[np.ndarray]:
@@ -217,7 +218,6 @@ class MultiLayerPerceptron:
         a = X
         for i, (b, W) in enumerate(zip(self._biases, self._weights)):
             z = a @ W + b.T
-            # z = self._safe_sparse_dot(a,W) + b.T
             a = self.activation(z) if i < self._num_layers - 2 else self._output_activation(z)
             layer_raw.append(z)
             layer_activations.append(a)
@@ -227,22 +227,19 @@ class MultiLayerPerceptron:
         # For last layer, compare to y
         last_hidden = self._num_layers - 2
 
-        delta = (layer_activations[last_hidden] - y) * self.dActivation(layer_raw[last_hidden])
+        delta = (layer_activations[last_hidden] - y) #* self.dActivation(layer_raw[last_hidden])
         dBias[last_hidden] = np.mean(delta, axis=0)
         dWeights[last_hidden] = layer_activations[last_hidden-1].T @ delta
-        # dWeights[last_hidden] = self._safe_sparse_dot(layer_activations[last_hidden-1].T, delta)
 
         # For all hidden layers, compare to layer after it
         for L in range(last_hidden-1, 0, -1):
             delta = (delta @ self._weights[L+1].T) * self.dActivation(layer_raw[L])
-            # delta = self._safe_sparse_dot(delta, self._weights[L+1].T) * self.dActivation(layer_raw[L])
             dBias[L] = np.mean(delta, axis=0)
             dWeights[L] = layer_activations[L-1].T @ delta
 
 
         # For input layer, update W according to input, not previous layer
         delta = (delta @ self._weights[1].T) * self.dActivation(layer_raw[0])
-        # delta = self._safe_sparse_dot(delta, self._weights[1].T) * self.dActivation(layer_raw[0])
         dBias[0] = np.mean(delta, axis=0)
         dWeights[0] = X.T @ delta
         # add a second dimension to the bias gradient to make it compatible with the bias shape
@@ -256,49 +253,16 @@ class MultiLayerPerceptron:
     def _calc_loss(self, y_pred: np.ndarray, y_batch: np.ndarray) -> float:
         loss = self._loss_function(y_pred, y_batch)
         if self.regularization:
-            loss += self.reg_const * self._loss_reg(self._weights)
+            loss += (0.5 * self.reg_const) * self._loss_reg(self._weights) / y_pred.shape[0]
         return loss
 
     def _fast_forward_pass(self, X: np.ndarray) -> np.ndarray:
         curr = X
         for i in range(self._num_layers - 1):
             curr = curr @ self._weights[i]
-            # curr = self._safe_sparse_dot(curr,self._weights[i])
             curr += self._biases[i].T
             curr = self.activation(curr) if i < self._num_layers - 2 else self._output_activation(curr)
         return curr
-
-    def _safe_sparse_dot(self, a, b, dense_output=False):
-        """Dot product that handle the sparse matrix case correctly
-        Lovingly copied from sklearn.utils.extmath.safe_sparse_dot
-        """
-        if a.ndim > 2 or b.ndim > 2:
-            if sparse.issparse(a):
-                # sparse is always 2D. Implies b is 3D+
-                # [i, j] @ [k, ..., l, m, n] -> [i, k, ..., l, n]
-                b_ = np.rollaxis(b, -2)
-                b_2d = b_.reshape((b.shape[-2], -1))
-                ret = a @ b_2d
-                ret = ret.reshape(a.shape[0], *b_.shape[1:])
-            elif sparse.issparse(b):
-                # sparse is always 2D. Implies a is 3D+
-                # [k, ..., l, m] @ [i, j] -> [k, ..., l, j]
-                a_2d = a.reshape(-1, a.shape[-1])
-                ret = a_2d @ b
-                ret = ret.reshape(*a.shape[:-1], b.shape[1])
-            else:
-                ret = np.dot(a, b)
-        else:
-            ret = a @ b
-        
-        if (
-            sparse.issparse(a)
-            and sparse.issparse(b)
-            and dense_output
-            and hasattr(ret, "toarray")
-        ):
-            return ret.toarray()
-        return ret
     
     def plot_loss(self) -> None:
         plt.plot(self.train_loss_curve, label='Training loss')
