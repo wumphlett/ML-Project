@@ -6,48 +6,56 @@ from sklearn.model_selection import train_test_split
 
 from bootstrap import DATA_DIR
 
+# 1.4 Million rows
 CDS_AND_VINYL_JSON_PARAMS = {
     'file': 'CDs_and_Vinyl_5.json.gz',
     'filetype': 'json',
     'features': "reviewText",
     'labels': "overall",
 }
+# 1.1 Million rows
 CELL_PHONE_JSON_PARAMS = {
     'file': 'Cell_Phones_and_Accessories_5.json.gz',
     'filetype': 'json',
     'features': "reviewText",
     'labels': "overall",
 }
+# 11.3 Million rows
 CLOTHING_JSON_PARAMS = {
     'file': 'Clothing_Shoes_and_Jewelry_5.json',
     'filetype': 'json',
     'features': "reviewText",
     'labels': "overall",
 }
+# 6.7 Million rows
 ELECTRONICS_JSON_PARAMS = {
     'file': 'Electronics_5.json.gz',
     'filetype': 'json',
     'features': "reviewText",
     'labels': "overall",
 }
+# 6.9 Million rows
 HOME_AND_KITCHEN_JSON_PARAMS = {
     'file': 'Home_and_Kitchen_5.json.gz',
     'filetype': 'json',
     'features': "reviewText",
     'labels': "overall",
 }
+# 2.2 Million rows
 KINDLE_STORE_JSON_PARAMS = {
     'file': 'Kindle_Store_5.json.gz',
     'filetype': 'json',
     'features': "reviewText",
     'labels': "overall",
 }
+# 3.4 Million rows
 MOVIES_JSON_PARAMS = {
     'file': 'Movies_and_TV_5.json.gz',
     'filetype': 'json',
     'features': "reviewText",
     'labels': "overall",
 }
+# 2.8 Million rows
 SPORTS_JSON_PARAMS = {
     'file': 'Sports_and_Outdoors_5.json.gz',
     'filetype': 'json',
