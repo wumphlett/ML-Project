@@ -63,6 +63,25 @@ def L2_reg_grad(weights: list[np.ndarray]) -> list[np.ndarray]:
     return [2*w for w in weights ]
 
 class MultiLayerPerceptron:
+    ''' 
+    An implementation of a multi-layer perceptron with backpropagation 
+
+    Parameters
+    -----------
+    epochs: int
+        Number of epochs to train the model
+    lr: float
+        Learning rate
+    hidden_layers: Sequence[int]
+        A sequence of integers representing the number of neurons in each hidden layer
+    regularization: str, default=None
+        The regularization function to use. Can be either None, "l1" or "l2"
+    reg_const: float, default=0.0
+        The regularization constant
+    activation: str, default="sigmoid"
+        The activation function to use. Can be either "sigmoid", "tanh" or "relu"
+    '''
+
     def __init__(
         self,
         epochs: int,
@@ -122,13 +141,23 @@ class MultiLayerPerceptron:
             yield i, self.lr
     
     def fit(self, X: np.ndarray, y: np.ndarray, X_val:np.ndarray = None, y_val:np.ndarray = None, batch_size: int = 1, continue_fit = False) -> None:
-        ''' Fits the model to the given data
-        X: Input data of shape (n_examples, n_features)
-        y: Output data of shape (n_examples, )
-        X_val: Validation input data of shape (n_examples, n_features)
-        y_val: Validation output data of shape (n_examples, )
-        batch_size: Size of the batch to be used for training
-        continue_fit: If True, the model will continue training from the last epoch
+        ''' 
+        Fits the model to the given data
+
+        Parameters
+        -----------
+        X: np.ndarray
+            Input data of shape (n_examples, n_features)
+        y: np.ndarray
+            Output data of shape (n_examples, )
+        X_val: np.ndarray, optional
+            Validation input data of shape (n_examples, n_features)
+        y_val: np.ndarray, optional
+            Validation output data of shape (n_examples, )
+        batch_size: int, default=1
+            Size of the batch to be used for training
+        continue_fit: bool, default=False
+            If True, the model will continue training from the last epoch
         '''
         if len(X.shape) != 2:
             raise ValueError("Invalid shape for X")
@@ -181,8 +210,6 @@ class MultiLayerPerceptron:
         curr = self._fast_forward_pass(X)
         if self.output_layer == 1:
             curr = curr.ravel()
-        # else:
-            # curr = np.argmax(self.activation(curr), axis=1).ravel()
         return self._yencoder.inverse_transform(curr)
     
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
@@ -208,44 +235,63 @@ class MultiLayerPerceptron:
         return self._yencoder.transform(y)
 
     def _backprop(self, X: np.ndarray, y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
+        # initialize empty lists to store the gradient of the biases and weights
         dBias = [np.zeros(b.shape) for b in self._biases]
         dWeights = [np.zeros(w.shape) for w in self._weights]
         n_samples = X.shape[0]
 
-        # do forward pass, store all activations and net values
-        layer_raw = []
-        layer_activations = []
-        a = X
+        # do a forward pass to get the activations and z values
+        layer_raw = [] # stores the weighted sum of inputs for each layer
+        layer_activations = [] # stores the output of each layer
+        a = X # input layer
         for i, (b, W) in enumerate(zip(self._biases, self._weights)):
+            # compute the weighted sum of inputs for this layer
             z = a @ W + b.T
-            a = self.activation(z) if i < self._num_layers - 2 else self._output_activation(z)
+
+            # apply the activation function to the output of this layer
+            if i < self._num_layers - 2:
+                a = self.activation(z)
+            else:
+                a = self._output_activation(z)
+            # store the raw output and the activated output of this layer
             layer_raw.append(z)
             layer_activations.append(a)
         
+        # calculate the loss
         loss = self._calc_loss(y, a)
 
-        # For last layer, compare to y
+        # index of the last hidden layer
         last_hidden = self._num_layers - 2
 
-        delta = (layer_activations[last_hidden] - y) #* self.dActivation(layer_raw[last_hidden])
+        # compute the error at the last hidden layer
+        delta = (layer_activations[last_hidden] - y)
+
+        # compute the gradient of the biases and weights for the last hidden layer
         dBias[last_hidden] = np.mean(delta, axis=0)
         dWeights[last_hidden] = layer_activations[last_hidden-1].T @ delta
 
-        # For all hidden layers, compare to layer after it
+        # for all hidden layers except the first and last,
+        # compute the gradient of the biases and weights
         for L in range(last_hidden-1, 0, -1):
+            # compute the error at this layer
             delta = (delta @ self._weights[L+1].T) * self.dActivation(layer_raw[L])
+
+            # compute the gradient of the biases and weights for this layer
             dBias[L] = np.mean(delta, axis=0)
             dWeights[L] = layer_activations[L-1].T @ delta
 
-
-        # For input layer, update W according to input, not previous layer
+        # for the input layer, compute the gradient of the biases and weights
+        # using the inputs, rather than the previous layer
         delta = (delta @ self._weights[1].T) * self.dActivation(layer_raw[0])
         dBias[0] = np.mean(delta, axis=0)
         dWeights[0] = X.T @ delta
+
         # add a second dimension to the bias gradient to make it compatible with the bias shape
         dBias = [db[:,np.newaxis] for db in dBias]
         # divide by number of samples to get the average gradient
         dWeights = [dw/n_samples for dw in dWeights]
+
+        # apply regularization if enabled
         if self.regularization:
             dWeights = [dw + self.reg_const * r for dw, r in zip(dWeights, self._grad_reg(self._weights))]
         return (dBias, dWeights, loss)
@@ -261,7 +307,10 @@ class MultiLayerPerceptron:
         for i in range(self._num_layers - 1):
             curr = curr @ self._weights[i]
             curr += self._biases[i].T
-            curr = self.activation(curr) if i < self._num_layers - 2 else self._output_activation(curr)
+            if i < self._num_layers - 2:
+                curr = self.activation(curr)
+            else:
+                curr = self._output_activation(curr)
         return curr
     
     def plot_loss(self) -> None:
