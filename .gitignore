@@ -133,6 +133,4 @@ dmypy.json
 
 # Project specific
 .env
-/data/dataset.csv
-/data/train.log
-/data/train.csv
+/data
