@@ -1,6 +1,9 @@
 # ML-Project
 COMP-5630 Term Project
 
+## Project
+Implementation, analysis, and benchmarking can be found in `project.ipynb`
+
 ## Setup
 1. `conda activate base`
 2. `jupyter notebook`
