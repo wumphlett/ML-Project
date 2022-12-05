@@ -133,4 +133,4 @@ dmypy.json
 
 # Project specific
 .env
-/data
+data/*.gz

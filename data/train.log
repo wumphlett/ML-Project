@@ -1,0 +1,19 @@
+13:18:26 START 1   / 900 : {'epochs': 10, 'lr': 2e-05, 'hidden_layers': [50, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 13  / 900 : {'epochs': 10, 'lr': 2e-05, 'hidden_layers': [50, 50, 20, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 25  / 900 : {'epochs': 10, 'lr': 2e-05, 'hidden_layers': [100, 40], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 37  / 900 : {'epochs': 10, 'lr': 0.00020000000000000004, 'hidden_layers': [50, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 49  / 900 : {'epochs': 10, 'lr': 0.00020000000000000004, 'hidden_layers': [50, 50, 20, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 61  / 900 : {'epochs': 10, 'lr': 0.00020000000000000004, 'hidden_layers': [100, 40], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 73  / 900 : {'epochs': 10, 'lr': 0.0020000000000000005, 'hidden_layers': [50, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 85  / 900 : {'epochs': 10, 'lr': 0.0020000000000000005, 'hidden_layers': [50, 50, 20, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 97  / 900 : {'epochs': 10, 'lr': 0.0020000000000000005, 'hidden_layers': [100, 40], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 109 / 900 : {'epochs': 10, 'lr': 0.020000000000000004, 'hidden_layers': [50, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 121 / 900 : {'epochs': 10, 'lr': 0.020000000000000004, 'hidden_layers': [50, 50, 20, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 133 / 900 : {'epochs': 10, 'lr': 0.020000000000000004, 'hidden_layers': [100, 40], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 145 / 900 : {'epochs': 10, 'lr': 0.20000000000000004, 'hidden_layers': [50, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 157 / 900 : {'epochs': 10, 'lr': 0.20000000000000004, 'hidden_layers': [50, 50, 20, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 169 / 900 : {'epochs': 10, 'lr': 0.20000000000000004, 'hidden_layers': [100, 40], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 181 / 900 : {'epochs': 17, 'lr': 2e-05, 'hidden_layers': [50, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 193 / 900 : {'epochs': 17, 'lr': 2e-05, 'hidden_layers': [50, 50, 20, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 205 / 900 : {'epochs': 17, 'lr': 2e-05, 'hidden_layers': [100, 40], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}
+13:18:26 START 217 / 900 : {'epochs': 17, 'lr': 0.00020000000000000004, 'hidden_layers': [50, 20], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}

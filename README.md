@@ -2,7 +2,7 @@
 COMP-5630 Term Project
 
 ## Setup
-1. `conda env create`
-2. `conda activate ml-project`
-3. The second cell (after setting the appropriate `.env` values) downloads the dataset and bootstraps your environment
+1. `conda activate base`
+2. `jupyter notebook`
+3. Execute first few cells to download data and setup environment
 4. Execute labeled cells to witness implementation and analysis

@@ -18,6 +18,7 @@ def matrix_train(
     X_test: np.ndarray,
     y_test: np.ndarray,
 ) -> Dict:
+    """Train multiple MLPs given a hypermatrix of hyperparameters"""
     global train
 
     parameters = signature(mlp.__init__).parameters
@@ -25,11 +26,7 @@ def matrix_train(
         if parameter not in parameters:
             raise Exception(f"parameter {parameter} not found in the MLP init method")
 
-    for parameter in parameters:
-        if parameter not in hyperparameters and parameter != "self":
-            raise Exception(f"parameter {parameter} not found in the training matrix")
-
-    axises = [(parameter, specified) for parameter, specified in hyperparameters.items()]
+    axises = list(hyperparameters.items())
 
     matrix = []
     for parameters in product(*[axis[1] for axis in axises]):
@@ -42,13 +39,13 @@ def matrix_train(
     def train(parameter_idx):
         parameter_kwargs = matrix[parameter_idx]
         logging_file.write(
-            f"{datetime.now().strftime('%X')} START {str(parameter_idx).ljust(digits)} / {combinations} : {parameter_kwargs}\n"
+            f"{datetime.now().strftime('%X')} START {str(parameter_idx+1).ljust(digits)} / {combinations} : {parameter_kwargs}\n"
         )
         logging_file.flush()
         model = mlp(**parameter_kwargs)
-        model.fit(X_train, y_train)
+        model.fit(X_train, y_train, batch_size=200, output=False)
         logging_file.write(
-            f"{datetime.now().strftime('%X')} ENDED {str(parameter_idx).ljust(digits)} / {combinations} : {parameter_kwargs}\n"
+            f"{datetime.now().strftime('%X')} ENDED {str(parameter_idx+1).ljust(digits)} / {combinations} : {parameter_kwargs}\n"
         )
         logging_file.flush()
         return accuracy_score(y_test, model.predict(X_test))

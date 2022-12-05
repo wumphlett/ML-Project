@@ -1,0 +1,2 @@
+accuracy,kwargs
+0.1959326149643345,"{'epochs': 10, 'lr': 1e-05, 'hidden_layers': [5, 5], 'activation': 'sigmoid', 'regularization': 'L2', 'reg_const': 0.0001}"
