@@ -44,11 +44,12 @@ def matrix_train(
         logging_file.flush()
         model = mlp(**parameter_kwargs)
         model.fit(X_train, y_train, batch_size=200, output=False)
+        acc = accuracy_score(y_test, model.predict(X_test))
         logging_file.write(
-            f"{datetime.now().strftime('%X')} ENDED {str(parameter_idx+1).ljust(digits)} / {combinations} : {parameter_kwargs}\n"
+            f"{datetime.now().strftime('%X')} ENDED {str(parameter_idx+1).ljust(digits)} / {combinations} : {parameter_kwargs} ({acc})\n"
         )
         logging_file.flush()
-        return accuracy_score(y_test, model.predict(X_test))
+        return acc
 
     with Pool(processes=cpu_count() - 1) as p:
         accuracies = p.map(train, range(len(matrix)))
